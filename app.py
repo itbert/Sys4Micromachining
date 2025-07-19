@@ -4,15 +4,16 @@ import io
 import os
 import uuid
 
+from ipynb.fs.full.postprocessing import get_data  # айайай
+
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# заглушка сучка
-# TODO: написать предикт от коорд которые модель выдала
+
 def predict_image(image_path):
-    return "predicted_class"
+    return get_data(image_path)  # айайай
 
 
 @app.route('/')

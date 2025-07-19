@@ -1,0 +1,17 @@
+data/images/train/Image__2025-07-15__16-09-55.bmp
+data/images/train/Image__2025-07-15__16-10-39.bmp
+data/images/train/Image__2025-07-15__16-10-49.bmp
+data/images/train/Image__2025-07-15__16-10-52.bmp
+data/images/train/Image__2025-07-15__16-11-13.bmp
+data/images/train/Image__2025-07-15__16-11-36.bmp
+data/images/train/Image__2025-07-15__16-11-46.bmp
+data/images/train/Image__2025-07-15__16-12-04.bmp
+data/images/train/Image__2025-07-15__16-12-49.bmp
+data/images/train/Image__2025-07-15__16-13-17.bmp
+data/images/train/Image__2025-07-15__16-13-39.bmp
+data/images/train/Image__2025-07-15__16-13-49.bmp
+data/images/train/Image__2025-07-15__16-14-19.bmp
+data/images/train/Image__2025-07-15__16-14-30.bmp
+data/images/train/Image__2025-07-15__16-14-47.bmp
+data/images/train/Image__2025-07-15__16-14-56.bmp
+data/images/train/Image__2025-07-15__16-15-22.bmp
