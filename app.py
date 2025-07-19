@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg') 
+
 from flask import Flask, render_template, request, send_file
 from PIL import Image
 import os
@@ -11,12 +14,15 @@ from matplotlib.colors import ListedColormap
 import cv2
 from sklearn.linear_model import LinearRegression
 
+from flask import Flask, render_template, request, redirect, url_for, send_file
+from PIL import Image
+import os, uuid
 # ----------------- Flask App Setup -----------------
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, 'uploads')
-app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
+UPLOAD_DIR = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 
 # Ensure full numpy array print
 np.set_printoptions(threshold=np.inf, linewidth=np.inf)
@@ -256,52 +262,71 @@ def about():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'image' not in request.files:
-        return "No file uploaded", 400
-    file = request.files['image']
-    if file.filename == '':
-        return "No selected file", 400
-    try:
-        img = Image.open(file.stream)
-        uid = uuid.uuid4().hex
-        bmp_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uid}.bmp")
-        img.save(bmp_path, format='BMP')
+    file = request.files.get('image')
+    if not file or file.filename == '':
+        return "No file", 400
 
-        # Get prediction
-        result = get_data(bmp_path, visualization=False)
+    # Generate unique ID
+    uid = uuid.uuid4().hex
+    
+    # Save original as BMP
+    bmp_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uid}.bmp")
+    img = Image.open(file.stream)
+    img.save(bmp_path, format='BMP')
 
-        # Save TXT
-        txt_path = os.path.join(app.config['UPLOAD_FOLDER'], f"result_{uid}.txt")
-        with open(txt_path, 'w') as f:
-            f.write(f"angle: {result['angle']}\n")
-            f.write(f"coords: {result['coords']}\n")
-            f.write("edge_mask:\n")
-            np.savetxt(f, result['edge_mask'], fmt='%d')
-            f.write("\nplatform_mask:\n")
-            np.savetxt(f, result['platform_mask'], fmt='%d')
-            f.write("\nobject_mask:\n")
-            np.savetxt(f, result['object_mask'], fmt='%d')
+    # Process image
+    result = get_data(bmp_path, visualization=False)
+    angle = round(result['angle'], 2)
+    coords = result['coords']
+    coords_str = f"({coords[0]}, {coords[1]})"
 
-        # Create visualization and save to file
-        vis_img_path = os.path.join(app.config['UPLOAD_FOLDER'], f"result_{uid}.png")
-        vis_image = Image.open(bmp_path).resize((640, 352))
-        instances = [
-            {'label': 'edge', 'mask': result['edge_mask']},
-            {'label': 'platform', 'mask': result['platform_mask'], 'points': get_points(result['platform_mask'])},
-            {'label': 'object', 'mask': result['object_mask']}
-        ]
-        show(vis_image,
-            instances,
-            title=f"Angle: {result['angle']:.2f}, Coords: {result['coords']}",
-            visualize_bboxes=True,
-            figsize=(10, 6))
+    # Prepare visualization using your show() function
+    vis_img = Image.open(bmp_path).resize((640, 352))
+    vis_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uid}.png")
+    
+    # Create instances for visualization
+    instances = [
+        {'label': 'edge', 'mask': result['edge_mask']},
+        {'label': 'platform', 'mask': result['platform_mask'], 'points': get_points(result['platform_mask'])},
+        {'label': 'object', 'mask': result['object_mask']}
+    ]
+    
+    # Create figure and visualize
+    plt.figure(figsize=(10, 6))
+    show(vis_img, 
+         instances=instances,
+         title=f"Angle: {angle}°, Coords: {coords_str}",
+         visualize_bboxes=True,
+         figsize=(10, 6))
+    
+    # Save visualization
+    plt.savefig(vis_path)
+    plt.close()
 
-        # 2) Взяли текущее active-окно и сохранили его
+    # Create TXT file with results
+    txt_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uid}.txt")
+    with open(txt_path, 'w') as f:
+        f.write(f"angle: {result['angle']}\n")
+        f.write(f"coords: {result['coords']}\n")
+        f.write("edge_mask:\n")
+        np.savetxt(f, result['edge_mask'], fmt='%d')
+        f.write("\nplatform_mask:\n")
+        np.savetxt(f, result['platform_mask'], fmt='%d')
+        f.write("\nobject_mask:\n")
+        np.savetxt(f, result['object_mask'], fmt='%d')
 
-        return send_file(txt_path, as_attachment=True)
+    # Render result page
+    image_url = url_for('static', filename=f"uploads/{uid}.png")
+    return render_template('result.html', 
+                         uid=uid, 
+                         image_url=image_url, 
+                         angle=angle, 
+                         coords=coords_str)
 
-    except Exception as e:
-        return f"Error processing image: {e}", 500
+@app.route('/download/<uid>')
+def download(uid):
+    txt_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{uid}.txt")
+    return send_file(txt_path, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -176,7 +176,8 @@
   <div class="container">
     <img src="{{ url_for('static', filename='logo.jpg') }}" class="logo" alt="Logo">
     <h1 class="project-title">AI System for Laser Micromachining</h1>
-    <p>Загрузите изображение в любом формате, и мы конвертируем его в BMP, проведем анализ и выдадим результат.</p>
+    <br>
+    <br>
 
     <form id="uploadForm" method="POST" enctype="multipart/form-data" action="/predict">
       <label class="upload-box">
@@ -192,7 +193,7 @@
       <div class="progress-fill" id="progressFill"></div>
     </div>
 
-    <a href="/about" class="about-link">About</a>
+    <a href="/about" class="about-link">О нас</a>
   </div>
 
   <script>
@@ -206,7 +207,6 @@
     fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
       fileName.textContent = file ? file.name : "Файл не выбран";
-
       if (file) {
         uploadBox.classList.add('success');
         uploadBox.appendChild(successIcon);
@@ -228,6 +228,5 @@
       setTimeout(() => progressFill.style.width = '100%', 2000);
     });
   </script>
-
 </body>
 </html>
