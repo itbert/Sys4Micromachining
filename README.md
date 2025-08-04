@@ -42,8 +42,8 @@
 ### 1. 📦 Клонируйте репозиторий
 
 ```bash
-git clone https://github.com/Sefixnep/NuclearHacaton.git
-cd NuclearHacaton
+git clone https://github.com/itbert/Sys4Micromachining.git
+cd Sys4Micromachining
 ```
 
 ### 2. 🛠 Установите зависимости
